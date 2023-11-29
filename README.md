@@ -78,10 +78,8 @@ Con factor de replicación = 3 los datos insertados en el nodo 1 deberían estar
 ## Probar fallo de nodos
 1. Detener nodos 2 y 3 para simular un fallo de estos nodos:
     ```cmd
-        docker stop cassandra-node-2
-    ```
-    ```cmd
-        docker stop cassandra-node-3
+    docker stop cassandra-node-2
+    docker stop cassandra-node-3
     ```
 
 2. Correr `cqlsh` en contenedor de nodo 1:
@@ -98,11 +96,9 @@ Con factor de replicación = 3 los datos insertados en el nodo 1 deberían estar
 4. Volver a correr los nodos 2 y 3:
     ```cmd
     docker start cassandra-node-2
-    ```
-    ```cmd
     docker start cassandra-node-3
     ```
-    Luego esperar un minuto para que se inicien los procesos.
+    Luego esperar unos segundos para que se inicien los procesos correctamente.
 
 5. Correr `cqlsh` en contenedor de nodo 3:
     ```cmd
@@ -117,7 +113,61 @@ Con factor de replicación = 3 los datos insertados en el nodo 1 deberían estar
     Si se muestra el examen recién ingresado, significa que la replicación continúa funcionando incluso después de un fallo de nodos.
 
 ## Probar consistencia de nodos
+Si se desea fuerte consistencia, se puede establecer el nivel de consistencia a `QUORUM`, de forma que cada consulta verificará la consistencia
+de los datos en al menos 2 nodos.
 
+1. Detener nodos 1 y 2:
+    ```cmd
+    docker stop cassandra-node-1
+    docker stop cassandra-node-2
+    ```
 
+2. Correr `cqlsh` en contenedor de nodo 3:
+    ```cmd
+    docker exec -it cassandra-node-3 cqlsh
+    ```
 
+3. Establecer nivel de consistencia a `QUORUM`:
+```cmd
+CONSISTENCY QUORUM
+```
 
+4. Correr consulta de prueba que intenta devolver los exámenes del paciente 10:
+```cmd
+USE patient;
+SELECT * FROM exam WHERE patient_id=10;
+```
+Como no existen suficientes nodos disponibles para establecer el consenso, el resultado será un error de tipo `NoHostAvailable`.
+
+5. Establecer nivel de consistencia a `ONE`:
+```
+CONSISTENCY ONE
+```
+
+6. Volver a correr la consulta:
+```cmd
+SELECT * FROM exam WHERE patient_id=10;
+```
+En este caso la consulta debería devolver el valor con éxito por el nivel de consistencia reducido.
+
+7. Volver a establecer el nivel de consistencia a `QUORUM`:
+```cmd
+CONSISTENCY QUORUM
+```
+
+8. Iniciar el nodo 1:
+```cmd
+docker start cassandra-node-1
+```
+
+9. Volver a correr la consulta:
+```cmd
+SELECT * FROM exam WHERE patient_id=10;
+```
+Nuevamente la consulta debería devolver el valor con éxito por alcanzar el consenso mínimo de 2 nodos.
+
+10. Verificar el estatus de los nodos:
+```cmd
+docker exec cassandra-node-3 nodetool status
+```
+Debe mostrarse el estatus activo de los nodos 1 y 3 (UN - Up/Normal) e inactivo el del nodo 2 (DN - Down/Normal).
