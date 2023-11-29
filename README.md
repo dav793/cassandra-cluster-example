@@ -128,46 +128,46 @@ de los datos en al menos 2 nodos.
     ```
 
 3. Establecer nivel de consistencia a `QUORUM`:
-```cmd
-CONSISTENCY QUORUM
-```
+    ```cmd
+    CONSISTENCY QUORUM
+    ```
 
 4. Correr consulta de prueba que intenta devolver los exámenes del paciente 10:
-```cmd
-USE patient;
-SELECT * FROM exam WHERE patient_id=10;
-```
-Como no existen suficientes nodos disponibles para establecer el consenso, el resultado será un error de tipo `NoHostAvailable`.
+    ```cmd
+    USE patient;
+    SELECT * FROM exam WHERE patient_id=10;
+    ```
+    Como no existen suficientes nodos disponibles para establecer el consenso, el resultado será un error de tipo `NoHostAvailable`.
 
 5. Establecer nivel de consistencia a `ONE`:
-```
-CONSISTENCY ONE
-```
+    ```
+    CONSISTENCY ONE
+    ```
 
 6. Volver a correr la consulta:
-```cmd
-SELECT * FROM exam WHERE patient_id=10;
-```
-En este caso la consulta debería devolver el valor con éxito por el nivel de consistencia reducido.
+    ```cmd
+    SELECT * FROM exam WHERE patient_id=10;
+    ```
+    En este caso la consulta debería devolver el valor con éxito por el nivel de consistencia reducido.
 
 7. Volver a establecer el nivel de consistencia a `QUORUM`:
-```cmd
-CONSISTENCY QUORUM
-```
+    ```cmd
+    CONSISTENCY QUORUM
+    ```
 
 8. Iniciar el nodo 1:
-```cmd
-docker start cassandra-node-1
-```
+    ```cmd
+    docker start cassandra-node-1
+    ```
 
 9. Volver a correr la consulta:
-```cmd
-SELECT * FROM exam WHERE patient_id=10;
-```
-Nuevamente la consulta debería devolver el valor con éxito por alcanzar el consenso mínimo de 2 nodos.
+    ```cmd
+    SELECT * FROM exam WHERE patient_id=10;
+    ```
+    Nuevamente la consulta debería devolver el valor con éxito por alcanzar el consenso mínimo de 2 nodos.
 
 10. Verificar el estatus de los nodos:
-```cmd
-docker exec cassandra-node-3 nodetool status
-```
-Debe mostrarse el estatus activo de los nodos 1 y 3 (UN - Up/Normal) e inactivo el del nodo 2 (DN - Down/Normal).
+    ```cmd
+    docker exec cassandra-node-3 nodetool status
+    ```
+    Debe mostrarse el estatus activo de los nodos 1 y 3 (UN - Up/Normal) e inactivo el del nodo 2 (DN - Down/Normal).
