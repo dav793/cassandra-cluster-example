@@ -4,7 +4,7 @@ Tutorial adaptado de [esta dirección](https://developer.ibm.com/tutorials/ba-se
 
 ## Correr contenedor raíz
 ```cmd
-docker run --name cassandra-node-1 cassandra:3.11
+docker run -d --name cassandra-node-1 cassandra:3.11
 ```
 
 ## Encontrar dirección IP del contenedor y guardar en variable SEED_NODE_ADDR
@@ -14,10 +14,10 @@ for /f "tokens=* usebackq" %F in (`docker inspect -f {{range.NetworkSettings.Net
 
 ## Correr contenedores adicionales
 ```cmd
-docker run --name cassandra-node-2 -e CASSANDRA_SEEDS=%SEED_NODE_ADDR% cassandra:3.11
+docker run -d --name cassandra-node-2 -e CASSANDRA_SEEDS=%SEED_NODE_ADDR% cassandra:3.11
 ```
 ```cmd
-docker run --name cassandra-node-3 -e CASSANDRA_SEEDS=%SEED_NODE_ADDR% cassandra:3.11
+docker run -d --name cassandra-node-3 -e CASSANDRA_SEEDS=%SEED_NODE_ADDR% cassandra:3.11
 ```
 
 ## Probar correcto número de nodos corriendo en cluster desde contenedor raíz
@@ -78,8 +78,7 @@ Con factor de replicación = 3 los datos insertados en el nodo 1 deberían estar
 ## Probar fallo de nodos
 1. Detener nodos 2 y 3 para simular un fallo de estos nodos:
     ```cmd
-    docker stop cassandra-node-2
-    docker stop cassandra-node-3
+    docker stop cassandra-node-2 cassandra-node-3
     ```
 
 2. Correr `cqlsh` en contenedor de nodo 1:
@@ -95,8 +94,7 @@ Con factor de replicación = 3 los datos insertados en el nodo 1 deberían estar
 
 4. Volver a correr los nodos 2 y 3:
     ```cmd
-    docker start cassandra-node-2
-    docker start cassandra-node-3
+    docker start cassandra-node-2 cassandra-node-3
     ```
     Luego esperar unos segundos para que se inicien los procesos correctamente.
 
@@ -118,8 +116,7 @@ de los datos en al menos 2 nodos.
 
 1. Detener nodos 1 y 2:
     ```cmd
-    docker stop cassandra-node-1
-    docker stop cassandra-node-2
+    docker stop cassandra-node-1 cassandra-node-2
     ```
 
 2. Correr `cqlsh` en contenedor de nodo 3:
